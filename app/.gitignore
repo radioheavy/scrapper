@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+*.log
+scraped_data.enc.gz
+valid_proxies.json

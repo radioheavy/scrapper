@@ -1,0 +1,10 @@
+[
+     {
+       "regex": "https://example.com/product/.*",
+       "extractor": "extract_product_data"
+     },
+     {
+       "regex": "https://example.com/category/.*",
+       "extractor": "extract_category_data"
+     }
+   ]

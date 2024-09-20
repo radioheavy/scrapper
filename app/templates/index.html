@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Scraper Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .config-item { margin-bottom: 10px; }
+        .config-item label { display: inline-block; width: 250px; }
+    </style>
+</head>
+<body>
+    <h1>Web Scraper Dashboard</h1>
+    
+    <h2>Yapılandırma</h2>
+    <form id="config-form">
+        <div id="config-items"></div>
+        <button type="submit">Güncelle</button>
+    </form>
+
+    <h2>Scraping Kontrolü</h2>
+    <button id="start-scraping">Scraping Başlat</button>
+
+    <h2>İlerleme</h2>
+    <div id="progress"></div>
+
+    <script>
+        $(document).ready(function() {
+            var socket = io();
+
+            function loadConfig() {
+                $.get('/get_config', function(config) {
+                    var configHtml = '';
+                    for (var key in config) {
+                        var value = config[key];
+                        var inputType = typeof value === 'boolean' ? 'checkbox' : 'text';
+                        var checked = value === true ? 'checked' : '';
+                        configHtml += '<div class="config-item">';
+                        configHtml += '<label for="' + key + '">' + key + ':</label>';
+                        configHtml += '<input type="' + inputType + '" id="' + key + '" name="' + key + '" value="' + value + '" ' + checked + '>';
+                        configHtml += '</div>';
+                    }
+                    $('#config-items').html(configHtml);
+                });
+            }
+
+            loadConfig();
+
+            $('#config-form').submit(function(e) {
+                e.preventDefault();
+                var formData = {};
+                $(this).serializeArray().forEach(function(item) {
+                    if (item.value === 'on') {
+                        formData[item.name] = true;
+                    } else if (item.value === 'off') {
+                        formData[item.name] = false;
+                    } else {
+                        formData[item.name] = item.value;
+                    }
+                });
+                $.ajax({
+                    url: '/update_config',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        alert('Yapılandırma güncellendi');
+                        loadConfig();
+                    }
+                });
+            });
+
+            $('#start-scraping').click(function() {
+                $.post('/start_scraping', function(data) {
+                    alert(data.status);
+                });
+            });
+
+            socket.on('scraping_progress', function(data) {
+                $('#progress').text('İlerleme: ' + data.progress + '%');
+            });
+        });
+    </script>
+</body>
+</html>
